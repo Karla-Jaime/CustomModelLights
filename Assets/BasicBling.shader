@@ -14,13 +14,19 @@
    
 
    CGPROGRAM 
-        #pragma surface surf BasicLambert
+        #pragma surface surf BasicBling
        
-        half4 LightingBasicBling(SurfaceOutput s, half3 lightDir, half atten)
-        {
-            half  NdotL = dot(s.Normal, lightDir); 
-            half4 c; //c abreviación de Luz
-            c.rgb = s.Albedo * _LightColor0.rgb * (NdotL * atten);//Es una palabra recerbada de Unity. 
+        half4 LightingBasicBling(SurfaceOutput s, half3 lightDir,half3 viewDir, half atten)
+        
+        { 
+            half3 h = normalize (lightDir + viewDir);//Dir del brillo
+            half diff = max(0, dot(s.Normal, lightDir));//Valor max de este
+            //Hacer producto Cruz entre normal y h
+            float nh = max(0, dot(s.Normal, h));
+            //Calcular Especular
+            float spec = pow(nh,48.0);//pow-potencia, valor, a cuanto
+            half4 c;
+            c.rgb = ((s.Albedo * _LightColor0.rgb) * diff * (spec * _LightColor0.rgb)) * atten;
             c.a = s.Alpha;
             return c;
         } 
