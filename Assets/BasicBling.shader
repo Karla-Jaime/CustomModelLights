@@ -1,4 +1,4 @@
-﻿Shader "Unlit/BasicLambert"
+﻿Shader "Unlit/BasicBling"
 {
    Properties
    {
@@ -15,12 +15,9 @@
 
    CGPROGRAM 
         #pragma surface surf BasicLambert
-        //Da orden a la superficie , se crea el modelo de luz 
-        //Al ser la luz un color es half4 (0,0,0,0) vertices 
-        //Nom del Model de Luz Lighting+Nombre del modelo //Atten intencidad con la que recibe la luz
-        half4 LightingBasicLambert(SurfaceOutput s, half3 lightDir, half atten)
+       
+        half4 LightingBasicBling(SurfaceOutput s, half3 lightDir, half atten)
         {
-            //
             half  NdotL = dot(s.Normal, lightDir); 
             half4 c; //c abreviación de Luz
             c.rgb = s.Albedo * _LightColor0.rgb * (NdotL * atten);//Es una palabra recerbada de Unity. 
