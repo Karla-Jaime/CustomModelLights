@@ -40,5 +40,24 @@
         }
 
         ENDCG
+
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex  verte
+            #pragma fragment frag
+
+            #include "UnityCG.cginc"
+
+            struct appdata //info
+            {
+                float4 vertex : POSITION;
+                //float2 uv : TEXCORD0;
+                float4 normal : NORMAL;
+            };//NO olvidar colocar ; al final de struct
+
+
+            ENDCG
+        }
     }
 }
