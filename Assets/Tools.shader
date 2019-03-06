@@ -58,6 +58,6 @@
 
 
             ENDCG
-        }
+        }//Multi-Channel Ramp
     }
 }
