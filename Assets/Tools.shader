@@ -19,13 +19,26 @@
         sampler2D _MainTex;
         sampler2D _RampTex;
 
-        float4 LightinToonRamp(SurfaceOutput s, fixed lightDir, fixed atten)
+        float4 LightingToonRamp(SurfaceOutput s, fixed2 lightDir, fixed atten)
         {   //difuso/ producto X = calcular la iluminacion
             half diff = dot(s.Normal, lightDir);
-            float uv = (diff 0.5) + 0.5;//La coordenada donde voy a ver el uv;
-
+            float uv = (diff * 0.5) + 0.5;//La coordenada donde voy a ver el uv;
+            float3 ramp = tex2D(_RampTex,uv);//Text2D regresa un color
+            float4 c;
+            c.rgb = s.Albedo * _LightColor0.rgb * ramp;
+            c.a = s.Alpha;
+            return c;
         }
-        
+        struct Input
+        {
+            float2 uv_MainTex;
+        };
+
+        void surf(Input IN, inout SurfaceOutput o)
+        {
+            o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * _Albedo.rgb;
+        }
+
         ENDCG
     }
 }
