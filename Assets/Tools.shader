@@ -5,6 +5,8 @@
         _MainTex("Main Texture", 2D) = "white"{}
         _Albedo("Albedo", Color) = (1,1,1,1)
         _RampTex("Ramp Texture", 2D) = "white"{}
+        _OutlineColor("Outline Color", Color) = (0,0,0,1)
+        _OutlineSize("Outline Width", Range(0.001, 01)) = 0.05
     }
 
     SubShader   
@@ -55,6 +57,28 @@
                 //float2 uv : TEXCORD0;
                 float4 normal : NORMAL;
             };//NO olvidar colocar ; al final de struct
+
+            struct v2f { 
+                float4 pos : SV_POSITION;
+                 // posicion de los vertices ante de ser procesados
+                fixed4 color : COLOR;
+                //albedo antes de ser modificado
+            };
+
+            float4 _OutlineColor;
+            float _OutlineSize;
+
+            v2f vert()
+            {
+                v2f o;
+                o.pos = = UnityObjectToClipPos(v.vertex)
+                //
+                float3 norm   = normalize(mul ((float3x3)UNITY_MATRIX_IT_MV, v.normal));
+                //float2 offset = TransformViewToProjection(norm.xy);
+                //o.pos.xy += offset * o.pos.z= * _OutlineSize;
+
+                return o;
+            }
 
 
             ENDCG
