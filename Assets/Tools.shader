@@ -44,9 +44,11 @@
         ENDCG
 
         Pass
-        {
+        {   
+            Cull Front
+
             CGPROGRAM
-            #pragma vertex  verte
+            #pragma vertex  vert
             #pragma fragment frag
 
             #include "UnityCG.cginc"
@@ -68,19 +70,24 @@
             float4 _OutlineColor;
             float _OutlineSize;
 
-            v2f vert()
-            {
+            v2f vert(appdata v)
+            { 
                 v2f o;
-                o.pos = = UnityObjectToClipPos(v.vertex)
-                //
+                o.pos = UnityObjectToClipPos(v.vertex);
                 float3 norm   = normalize(mul ((float3x3)UNITY_MATRIX_IT_MV, v.normal));
-                //float2 offset = TransformViewToProjection(norm.xy);
-                //o.pos.xy += offset * o.pos.z= * _OutlineSize;
-
+                //para la profundidad, calcular posicion
+                float2 offset = TransformViewToProjection(norm.xy);
+                //solo x,y por que es una proyeccion
+                //offset, la posicion en la que se encuentra la camara
+                o.pos.xy += offset * o.pos.z * _OutlineSize;
+                o.color = _OutlineColor;                                                
                 return o;
             }
-
-
+            //da la orden de mandar a llamar todo lo usado en v2f
+            fixed4 frag(v2f i) : SV_Target
+            {
+                return i.color;//pintar 
+            }
             ENDCG
         }//Multi-Channel Ramp
     }
