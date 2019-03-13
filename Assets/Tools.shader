@@ -42,7 +42,7 @@
         }
 
         ENDCG
-        
+
         Pass
         {   
             Cull Front
@@ -89,6 +89,6 @@
                 return i.color;//pintar 
             }
             ENDCG
-        }//Multi-Channel Ramp
+        }//Multi-Channel Rampxvgx
     }
 }
