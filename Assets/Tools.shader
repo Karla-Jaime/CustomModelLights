@@ -7,19 +7,25 @@
         _RampTex("Ramp Texture", 2D) = "white"{}
         _OutlineColor("Outline Color", Color) = (0,0,0,1)
         _OutlineSize("Outline Width", Range(0.001, 01)) = 0.05
+        _BumpMap ("Bumpmap", 2D) = "bump" {}
+        _RimColor ("Rim Color", Color) = (0.26,0.19,0.16,0.0)
+        _RimPower ("Rim Power", Range(0.5,8.0)) = 3.0
     }
 
     SubShader   
     {
+        Tags { "RenderType" = "Opaque" }
         CGPROGRAM
         #pragma surface surf ToonRamp
-        /*Me duelen los dientes tana nana~
-          Me duele la boca tana nana~
-          quiero una pastilla!!!
-          e irme a mi casaaaaaaaaa*/
+    
         float4 _Albedo;
+        float4 _RimColor;
+        float _RimPower;
+
         sampler2D _MainTex;
         sampler2D _RampTex;
+        sampler2D _BumpMap;
+       
 
         float4 LightingToonRamp(SurfaceOutput s, fixed2 lightDir, fixed atten)
         {   //difuso/ producto X = calcular la iluminacion
@@ -34,11 +40,16 @@
         struct Input
         {
             float2 uv_MainTex;
+            float2 uv_BumpMap;
+            float3 viewDir;
         };
 
         void surf(Input IN, inout SurfaceOutput o)
         {
             o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * _Albedo.rgb;
+            o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
+            half rim = 1.0 - saturate(dot (normalize(IN.viewDir), o.Normal));
+            o.Emission = _RimColor.rgb * pow (rim, _RimPower);
         }
 
         ENDCG
