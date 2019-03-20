@@ -1,105 +1,107 @@
-﻿Shader "Custom/Tools"
+﻿Shader "Custom/Toon"
 {
     Properties
     {
-        _MainTex("Main Texture", 2D) = "white"{}
-        _Albedo("Albedo", Color) = (1,1,1,1)
-        _RampTex("Ramp Texture", 2D) = "white"{}
-        _OutlineColor("Outline Color", Color) = (0,0,0,1)
-        _OutlineSize("Outline Width", Range(0.001, 01)) = 0.05
-        _BumpMap ("Bumpmap", 2D) = "bump" {}
-        _RimColor ("Rim Color", Color) = (0.26,0.19,0.16,0.0)
-        _RimPower ("Rim Power", Range(0.5,8.0)) = 3.0
+        _MainTex("Main Texture", 2D) = "white" {}
+        _Albedo("Albedo", Color) = (1, 1, 1, 1)
+        _RampTex("Ramp Texture", 2D) = "white" {}
+		_OutlineColor("Outline Color", Color) = (0, 0, 0, 1)
+		_OutlineSize("Outline Size", Range(0.001, 0.1)) = 0.05
+		_BumpTex("Normal", 2D) = "bump" {}
+		_NormalAmount("Normal Amount", Range(-3, 3)) = 1
+		_RimColor("Rim Color", Color) = (1, 1, 1, 1)
+		_RimPower("Rim Amount", Range(0.5, 8.0)) = 1
     }
 
-    SubShader   
+    SubShader
     {
-        Tags { "RenderType" = "Opaque" }
         CGPROGRAM
         #pragma surface surf ToonRamp
-    
+        
         float4 _Albedo;
-        float4 _RimColor;
-        float _RimPower;
-
         sampler2D _MainTex;
         sampler2D _RampTex;
-        sampler2D _BumpMap;
-       
+		sampler2D _BumpTex;
+		float _NormalAmount;
+		float4 _RimColor;
+		float _RimPower;
 
         float4 LightingToonRamp(SurfaceOutput s, fixed2 lightDir, fixed atten)
-        {   //difuso/ producto X = calcular la iluminacion
-            half diff = dot(s.Normal, lightDir);
-            float uv = (diff * 0.5) + 0.5;//La coordenada donde voy a ver el uv;
-            float3 ramp = tex2D(_RampTex,uv);//Text2D regresa un color
-            float4 c;
-            c.rgb = s.Albedo * _LightColor0.rgb * ramp;
-            c.a = s.Alpha;
-            return c;
-        }
-        struct Input
         {
-            float2 uv_MainTex;
-            float2 uv_BumpMap;
-            float3 viewDir;
-        };
+            half diff = dot(s.Normal, lightDir);//-1 hasta +1
+            float uv = (diff * 0.5) + 0.5;// la cordenada donde voy a ver el UV.
+			float3 ramp = tex2D(_RampTex, uv).rgb;
+			float4 c;
+			c.rgb = s.Albedo * _LightColor0.rgb * ramp;
+			c.a = s.Alpha;
+			return c;
+        }
 
-        void surf(Input IN, inout SurfaceOutput o)
-        {
-            o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * _Albedo.rgb;
-            o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-            half rim = 1.0 - saturate(dot (normalize(IN.viewDir), o.Normal));
-            o.Emission = _RimColor.rgb * pow (rim, _RimPower);
-        }
+		struct Input
+		{
+			float2 uv_MainTex;
+			float2 uv_BumpTex;
+			float3 viewDir;
+		};
+
+		void surf(Input IN, inout SurfaceOutput o)
+		{
+			o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * _Albedo.rgb;
+			float3 normal = UnpackNormal(tex2D(_BumpTex, IN.uv_BumpTex));
+			normal.z = normal.z / _NormalAmount;
+			o.Normal = normal;
+			half rim = 1.0 - saturate(dot(normalize(IN.viewDir), o.Normal));
+			o.Emission = _RimColor.rgb * pow(rim, _RimPower);
+		}
 
         ENDCG
 
-        Pass
-        {   
-            Cull Front
+		Pass
+		{
+			Cull Front
 
-            CGPROGRAM
-            #pragma vertex  vert
-            #pragma fragment frag
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
 
-            #include "UnityCG.cginc"
+			#include "UnityCG.cginc"
 
-            struct appdata //info
-            {
-                float4 vertex : POSITION;
-                //float2 uv : TEXCORD0;
-                float4 normal : NORMAL;
-            };//NO olvidar colocar ; al final de struct
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+			};
 
-            struct v2f { 
-                float4 pos : SV_POSITION;
-                 // posicion de los vertices ante de ser procesados
-                fixed4 color : COLOR;
-                //albedo antes de ser modificado
-            };
+			struct v2f
+			{
+				float4 pos : SV_POSITION;
+				float4 color : COLOR;
+			};
 
-            float4 _OutlineColor;
-            float _OutlineSize;
+			float4 _OutlineColor;
+			float _OutlineSize;
 
-            v2f vert(appdata v)
-            { 
-                v2f o;
-                o.pos = UnityObjectToClipPos(v.vertex);
-                float3 norm   = normalize(mul ((float3x3)UNITY_MATRIX_IT_MV, v.normal));
-                //para la profundidad, calcular posicion
+			v2f vert(appdata v)
+			{
+				v2f o;
+				o.pos = UnityObjectToClipPos(v.vertex);
+
+				float3 norm = normalize(mul ((float3x3)UNITY_MATRIX_IT_MV, 
+				v.normal));
                 float2 offset = TransformViewToProjection(norm.xy);
-                //solo x,y por que es una proyeccion
-                //offset, la posicion en la que se encuentra la camara
+
+				//Tamaño de la linea alrededor del cuerpo y profundidad;
                 o.pos.xy += offset * o.pos.z * _OutlineSize;
-                o.color = _OutlineColor;                                                
-                return o;
-            }
-            //da la orden de mandar a llamar todo lo usado en v2f
-            fixed4 frag(v2f i) : SV_Target
-            {
-                return i.color;//pintar 
-            }
-            ENDCG
-        }//Multi-Channel Rampxvgx
+                o.color = _OutlineColor;
+				return o;
+			}
+
+			fixed4 frag(v2f i) : SV_Target
+			{
+				return i.color;
+			}
+
+			ENDCG
+		}
     }
 }
