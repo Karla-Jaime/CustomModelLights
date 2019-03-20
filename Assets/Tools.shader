@@ -6,7 +6,7 @@
         _Albedo("Albedo", Color) = (1, 1, 1, 1)
         _RampTex("Ramp Texture", 2D) = "white" {}
 		_OutlineColor("Outline Color", Color) = (0, 0, 0, 1)
-		_OutlineSize("Outline Size", Range(0.001, 0.1)) = 0.05
+		_OutlineSize("Outline Size", Range(0.001, 0.3)) = 0.05
 		_BumpTex("Normal", 2D) = "bump" {}
 		_NormalAmount("Normal Amount", Range(-3, 3)) = 1
 		_RimColor("Rim Color", Color) = (1, 1, 1, 1)
